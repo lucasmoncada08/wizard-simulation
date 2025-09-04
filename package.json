@@ -1,0 +1,48 @@
+{
+  "name": "wizard-simulation",
+  "version": "1.0.0",
+  "description": "Wizard card game simulation with TDD approach",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build": "tsc && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "lint": "eslint src --ext .ts",
+    "fix": "eslint src --ext .ts --fix && prettier --write src/**/*.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucasmoncada08/wizard-simulation.git"
+  },
+  "keywords": [
+    "wizard",
+    "card-game",
+    "simulation",
+    "tdd"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucasmoncada08/wizard-simulation/issues"
+  },
+  "homepage": "https://github.com/lucasmoncada08/wizard-simulation#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^24.3.1",
+    "@typescript-eslint/eslint-plugin": "^8.42.0",
+    "@typescript-eslint/parser": "^8.42.0",
+    "esbuild": "^0.25.9",
+    "eslint": "^9.34.0",
+    "fast-check": "^4.3.0",
+    "prettier": "^3.6.2",
+    "pure-rand": "^7.0.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  }
+}

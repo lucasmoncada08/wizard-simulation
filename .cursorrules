@@ -1,0 +1,12 @@
+# Cursor Project Rules
+- Language: TypeScript (ES2022). No any. Strict TS.
+- Tests: Vitest. Property tests: fast-check. RNG: pure-rand (splitable).
+- Dev runner: tsx. Prod bundle: esbuild.
+- Style: ESLint + Prettier.
+- Architecture:
+  - src/core: cards, rules loader (from RULES.yaml), deal, trick, scoring, game
+  - src/agents: random, rule_based, mcts (stub)
+  - src/sim: runner, metrics, elo
+- Determinism: every public function accepts an RNG or seed.
+- Keep functions small and pure; avoid globals and singletons.
+- Write tests before code. Update tests only when spec changes in RULES.yaml/TESTPLAN.md.
