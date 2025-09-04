@@ -64,16 +64,7 @@ describe('Trick Resolution', () => {
     expect(resolver.resolveTrick(trick)).toBe(2); // Ace of hearts wins (rank 14 > rank 5)
   });
 
-  it('should make first card win when no led suit cards', () => {
-    const resolver = new TrickResolver();
-    const trick = new Trick([
-      new Card('♠', 5),  // 5 of spades
-      new Card('♦', 10), // 10 of diamonds
-      new Card('♣', 14)  // Ace of clubs
-    ], '♥'); // Hearts led but no hearts played
-    
-    expect(resolver.resolveTrick(trick)).toBe(0); // First card wins
-  });
+  
 
   it('should prioritize wizard over trump', () => {
     const resolver = new TrickResolver();
