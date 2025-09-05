@@ -9,4 +9,6 @@
   - src/sim: runner, metrics, elo
 - Determinism: every public function accepts an RNG or seed.
 - Keep functions small and pure; avoid globals and singletons.
-- Write tests before code. Update tests only when spec changes in RULES.yaml/TESTPLAN.md.
+- Write tests before code. Update tests only when spec changes in RULES.yaml/TEST_PLAN.md.
+- Use Object Oriented Programming (OOP) to design the code.
+- Use Design Patterns when reasonable.

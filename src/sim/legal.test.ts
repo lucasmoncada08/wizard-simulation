@@ -2,12 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { Card, WizardCard, JesterCard, type GameCard } from '../core/cards';
 import { getLegalPlays } from '../index';
 
-const sortByIdentity = (cards: GameCard[]): string[] => cards.map(c => {
-  if (c.isWizard()) return 'W';
-  if (c.isJester()) return 'J';
-  const rc = c as import('../core/cards').Card;
-  return `${rc.suit}${rc.rank}`;
-});
+const sortByIdentity = (cards: GameCard[]): string[] =>
+  cards.map((c) => {
+    if (c.isWizard()) return 'W';
+    if (c.isJester()) return 'J';
+    const rc = c as import('../core/cards').Card;
+    return `${rc.suit}${rc.rank}`;
+  });
 
 describe('getLegalPlays', () => {
   it('returns all cards when no card led (undefined ledSuit)', () => {
@@ -15,7 +16,7 @@ describe('getLegalPlays', () => {
       new Card('♠', 10),
       new Card('♥', 3),
       new WizardCard(),
-      new JesterCard()
+      new JesterCard(),
     ];
 
     const legal = getLegalPlays(hand, undefined);
@@ -29,15 +30,15 @@ describe('getLegalPlays', () => {
       new Card('♠', 3),
       new Card('♥', 7),
       new WizardCard(),
-      new JesterCard()
+      new JesterCard(),
     ];
 
     const legal = getLegalPlays(hand, '♠');
 
     // Expect both spades + both special cards
-    expect(sortByIdentity(legal)).toEqual(sortByIdentity([
-      hand[0], hand[1], hand[3], hand[4]
-    ]));
+    expect(sortByIdentity(legal)).toEqual(
+      sortByIdentity([hand[0], hand[1], hand[3], hand[4]])
+    );
   });
 
   it('when ledSuit present and no card of that suit: all cards legal', () => {
@@ -45,7 +46,7 @@ describe('getLegalPlays', () => {
       new Card('♥', 10),
       new Card('♦', 3),
       new JesterCard(),
-      new WizardCard()
+      new WizardCard(),
     ];
 
     const legal = getLegalPlays(hand, '♣');
@@ -63,7 +64,7 @@ describe('getLegalPlays', () => {
       new Card('♥', 9),
       new Card('♦', 12),
       new WizardCard(),
-      new JesterCard()
+      new JesterCard(),
     ];
     const legal = getLegalPlays(hand, '♣');
     expect(sortByIdentity(legal)).toEqual(sortByIdentity(hand));
@@ -75,11 +76,11 @@ describe('getLegalPlays', () => {
       new Card('♣', 14),
       new Card('♦', 5),
       new WizardCard(),
-      new JesterCard()
+      new JesterCard(),
     ];
     const legal = getLegalPlays(hand, '♣');
-    expect(sortByIdentity(legal)).toEqual(sortByIdentity([
-      hand[0], hand[1], hand[3], hand[4]
-    ]));
+    expect(sortByIdentity(legal)).toEqual(
+      sortByIdentity([hand[0], hand[1], hand[3], hand[4]])
+    );
   });
 });

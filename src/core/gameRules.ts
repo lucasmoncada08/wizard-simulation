@@ -36,22 +36,34 @@ export function loadRules(filePath: string = 'gameRules.yaml'): GameRules {
   try {
     const fileContent = readFileSync(filePath, 'utf8');
     const rules = parse(fileContent) as GameRules;
-    
+
     // Validate required fields
-    if (!rules.players || !rules.deck || !rules.rounds || !rules.trump || !rules.bidding || !rules.play) {
+    if (
+      !rules.players ||
+      !rules.deck ||
+      !rules.rounds ||
+      !rules.trump ||
+      !rules.bidding ||
+      !rules.play
+    ) {
       throw new Error('Invalid rules file: missing required sections');
     }
-    
+
     return rules;
   } catch (error) {
-    throw new Error(`Failed to load rules from ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error(
+      `Failed to load rules from ${filePath}: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
   }
 }
 
 export function getMaxRounds(rules: GameRules): number {
   if (rules.rounds.max === 'auto') {
     // Calculate based on deck size and players
-    const totalCards = rules.deck.suits.length * rules.deck.ranks.length + rules.deck.wizards + rules.deck.jesters;
+    const totalCards =
+      rules.deck.suits.length * rules.deck.ranks.length +
+      rules.deck.wizards +
+      rules.deck.jesters;
     return Math.floor(totalCards / rules.players);
   }
   return rules.rounds.max;

@@ -3,8 +3,8 @@ import { RandomGenerator, xoroshiro128plus } from 'pure-rand';
 export type Seed = number;
 
 export interface RNG {
-  nextInt(min: number, max: number): number;
-  nextInt(max: number): number;
+  nextIntWithinBounds(min: number, max: number): number;
+  nextIntWithinBounds(max: number): number;
   nextDouble(): number;
   split(): RNG;
 }
@@ -16,7 +16,7 @@ export class PureRNG implements RNG {
     this.generator = xoroshiro128plus(seed);
   }
 
-  nextInt(minOrMax: number, max?: number): number {
+  nextIntWithinBounds(minOrMax: number, max?: number): number {
     if (max === undefined) {
       // Single argument: nextInt(max)
       const value = Math.abs(this.generator.unsafeNext());

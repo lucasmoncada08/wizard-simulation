@@ -11,22 +11,22 @@ export class Dealer {
     if (numPlayers <= 0) {
       throw new Error('Number of players must be positive');
     }
-    
+
     if (round <= 0) {
       throw new Error('Round number must be positive');
     }
-    
+
     const deck = new Deck();
     const shuffledDeck = deck.shuffle(rng);
     const hands = shuffledDeck.dealCards(numPlayers, round);
-    
+
     // Calculate remaining cards
     const cardsDealt = numPlayers * round;
     const remainingDeck = shuffledDeck.cards.slice(cardsDealt);
-    
+
     return {
       hands,
-      remainingDeck
+      remainingDeck,
     };
   }
 
@@ -38,17 +38,17 @@ export class Dealer {
         return false;
       }
     }
-    
+
     // Check that we have the right number of hands
     if (deal.hands.length !== numPlayers) {
       return false;
     }
-    
+
     // Check that total cards dealt + remaining equals deck size
     const totalDealt = deal.hands.reduce((sum, hand) => sum + hand.length, 0);
     const totalCards = totalDealt + deal.remainingDeck.length;
     const expectedTotal = 60; // Standard Wizard deck size
-    
+
     return totalCards === expectedTotal;
   }
 }

@@ -4,7 +4,7 @@ import { Scorer, type ScoreResult } from './scoring';
 describe('Scoring', () => {
   const rules = {
     exact: '20 + 10*bid',
-    miss_penalty_per_trick: -10
+    miss_penalty_per_trick: -10,
   };
 
   describe('calculateScore', () => {
@@ -49,22 +49,24 @@ describe('Scoring', () => {
       const scorer = new Scorer(rules);
       const bids = [2, 1, 3, 0];
       const tricks = [2, 1, 2, 0];
-      
+
       const results = scorer.calculateRoundScores(bids, tricks);
-      
+
       expect(results).toHaveLength(4);
-      expect(results[0]).toEqual({ score: 40, exact: true });  // 20 + 10*2
-      expect(results[1]).toEqual({ score: 30, exact: true });  // 20 + 10*1
+      expect(results[0]).toEqual({ score: 40, exact: true }); // 20 + 10*2
+      expect(results[1]).toEqual({ score: 30, exact: true }); // 20 + 10*1
       expect(results[2]).toEqual({ score: -10, exact: false }); // -10 * |3-2|
-      expect(results[3]).toEqual({ score: 20, exact: true });  // 20 + 10*0
+      expect(results[3]).toEqual({ score: 20, exact: true }); // 20 + 10*0
     });
 
     it('should throw error for mismatched arrays', () => {
       const scorer = new Scorer(rules);
       const bids = [1, 2, 3];
       const tricks = [1, 2];
-      
-      expect(() => scorer.calculateRoundScores(bids, tricks)).toThrow('Bids and tricks arrays must have the same length');
+
+      expect(() => scorer.calculateRoundScores(bids, tricks)).toThrow(
+        'Bids and tricks arrays must have the same length'
+      );
     });
   });
 
@@ -75,9 +77,9 @@ describe('Scoring', () => {
         { score: 40, exact: true },
         { score: -10, exact: false },
         { score: 30, exact: true },
-        { score: -20, exact: false }
+        { score: -20, exact: false },
       ];
-      
+
       const total = scorer.sumScores(scores);
       expect(total).toBe(40); // 40 + (-10) + 30 + (-20)
     });
@@ -93,9 +95,9 @@ describe('Scoring', () => {
       const scores: ScoreResult[] = [
         { score: -30, exact: false },
         { score: -20, exact: false },
-        { score: -10, exact: false }
+        { score: -10, exact: false },
       ];
-      
+
       const total = scorer.sumScores(scores);
       expect(total).toBe(-60);
     });

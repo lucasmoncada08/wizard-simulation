@@ -28,7 +28,7 @@ export class Scorer {
     if (bids.length !== tricks.length) {
       throw new Error('Bids and tricks arrays must have the same length');
     }
-    
+
     return bids.map((bid, index) => this.calculateScore(bid, tricks[index]));
   }
 

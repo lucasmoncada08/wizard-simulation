@@ -10,6 +10,7 @@
     "test:watch": "vitest",
     "build": "tsc && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
     "lint": "eslint src --ext .ts",
+    "format": "prettier --write \"src/**/*.ts\"",
     "fix": "eslint src --ext .ts --fix && prettier --write src/**/*.ts"
   },
   "repository": {
