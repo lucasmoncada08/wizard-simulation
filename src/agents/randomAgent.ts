@@ -19,7 +19,7 @@ export const randomAgent: Agent = {
   bid(ctx: BidContext): number {
     const max = ctx.hand.length;
     // inclusive upper bound -> pick in [0, max]
-    return ctx.rng.nextIntWithinBounds(max);
+    return ctx.rng.nextIntWithinBounds(max + 1);
   },
 
   play(ctx: PlayContext): GameCard {

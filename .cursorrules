@@ -12,3 +12,5 @@
 - Write tests before code. Update tests only when spec changes in RULES.yaml/TEST_PLAN.md.
 - Use Object Oriented Programming (OOP) to design the code.
 - Use Design Patterns when reasonable.
+- Naming of variables and functions should be descriptive.
+- Prefer small functions: if a function exceeds 30 lines or mixes concerns, refactor into descriptive single-responsibility helpers (private methods), keeping nesting ≤2 levels.

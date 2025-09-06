@@ -1,0 +1,103 @@
+import { describe, it, expect } from 'vitest';
+import { loadRules } from '../core/gameRules';
+import { createRNG } from '../core/rng';
+import { randomAgent } from '../agents/randomAgent';
+
+import { OneTrickSimulator, type SimEvent, type Stepper } from './oneTrick';
+
+function serializeEvent(e: SimEvent): unknown {
+  switch (e.type) {
+    case 'flip':
+      return { t: e.type, card: e.cardId };
+    case 'chooseTrump':
+      return { t: e.type, trump: e.trump };
+    case 'bid':
+      return { t: e.type, p: e.player, bid: e.bid };
+    case 'play':
+      return { t: e.type, p: e.player, card: e.cardId, led: e.ledSuit ?? null, trump: e.trumpSuit };
+    case 'resolve':
+      return { t: e.type, winner: e.winner };
+    case 'deal':
+      return { t: e.type, round: e.round, dealer: e.dealer, hands: e.hands.map((h) => h.map((id) => id)) };
+    default:
+      return e;
+  }
+}
+
+class CountingStepper implements Stepper {
+  public count = 0;
+  async pause(): Promise<void> {
+    this.count += 1;
+  }
+}
+
+describe('OneTrickSimulator', () => {
+  it('runs deterministically with same seed', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim1 = new OneTrickSimulator(rules);
+    const res1 = await sim1.run({
+      agents,
+      rng: createRNG(42),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const sim2 = new OneTrickSimulator(rules);
+    const res2 = await sim2.run({
+      agents,
+      rng: createRNG(42),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    expect(res1.summary.winner).toBe(res2.summary.winner);
+    expect(res1.summary.bids).toEqual(res2.summary.bids);
+    expect(res1.events.map(serializeEvent)).toEqual(res2.events.map(serializeEvent));
+  });
+
+  it('pauses on each decision in step mode', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+    const stepper = new CountingStepper();
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(7),
+      dealerIndex: 1,
+      round: 1,
+      mode: 'step',
+      stepper,
+    });
+
+    const minEvents = 1 + 1 + 4 + 4 + 1; // deal + flip + 4 bids + 4 plays + resolve
+    expect(res.events.length).toBeGreaterThanOrEqual(minEvents);
+    expect(stepper.count).toBe(res.events.length);
+  });
+
+  it('in a 1-card trick, randomAgent occasionally bids 1 across seeds', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    let sawOne = false;
+    for (let seed = 1; seed <= 5 && !sawOne; seed++) {
+      const sim = new OneTrickSimulator(rules);
+      const res = await sim.run({
+        agents,
+        rng: createRNG(seed),
+        dealerIndex: 0,
+        round: 1,
+        mode: 'fast',
+      });
+      if (res.summary.bids.some((b) => b === 1)) {
+        sawOne = true;
+      }
+    }
+
+    expect(sawOne).toBe(true);
+  });
+});

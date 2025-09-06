@@ -9,6 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build": "tsc && esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js",
+    "demo:one": "tsx src/examples/oneTrickDemo.ts",
+    "demo:step": "tsx src/examples/oneTrickStepDemo.ts",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
     "fix": "eslint src --ext .ts --fix && prettier --write src/**/*.ts"
@@ -37,6 +39,7 @@
     "esbuild": "^0.25.9",
     "eslint": "^9.34.0",
     "fast-check": "^4.3.0",
+    "globals": "^16.3.0",
     "prettier": "^3.6.2",
     "pure-rand": "^7.0.1",
     "tsx": "^4.20.5",

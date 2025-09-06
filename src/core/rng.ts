@@ -18,12 +18,12 @@ export class PureRNG implements RNG {
 
   nextIntWithinBounds(minOrMax: number, max?: number): number {
     if (max === undefined) {
-      // Single argument: nextInt(max)
+      // Single argument: nextIntWithinBounds(max)
       const value = Math.abs(this.generator.unsafeNext());
       this.generator = this.generator.clone();
       return value % minOrMax;
     } else {
-      // Two arguments: nextInt(min, max)
+      // Two arguments: nextIntWithinBounds(min, max)
       const value = Math.abs(this.generator.unsafeNext());
       this.generator = this.generator.clone();
       return minOrMax + (value % (max - minOrMax));
