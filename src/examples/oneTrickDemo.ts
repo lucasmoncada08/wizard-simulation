@@ -1,6 +1,7 @@
 import { loadRules } from '../core/gameRules';
 import { createRNG } from '../core/rng';
 import { randomAgent } from '../agents/randomAgent';
+import { naiveAgent } from '../agents/naiveAgent';
 import { OneTrickSimulator } from '../sim/oneTrick';
 
 async function main(): Promise<void> {
@@ -10,7 +11,7 @@ async function main(): Promise<void> {
   const rules = loadRules();
   const sim = new OneTrickSimulator(rules);
 
-  const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+  const agents = [naiveAgent, randomAgent, randomAgent, naiveAgent];
 
   const result = await sim.run({
     agents,

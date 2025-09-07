@@ -12,6 +12,7 @@ export type SimEvent =
   | {
       type: 'deal';
       dealer: number;
+      dealerName?: string;
       round: number;
       hands: string[][];
     }
@@ -22,21 +23,25 @@ export type SimEvent =
   | {
       type: 'chooseTrump';
       dealer: number;
+      dealerName?: string;
       trump: TrumpSuit;
     }
   | {
       type: 'bid';
       player: number;
+      playerName?: string;
       bid: number;
       hand: string[];
     }
   | {
       type: 'play';
       player: number;
+      playerName?: string;
       cardId: string;
       ledSuit?: Suit;
       trumpSuit: TrumpSuit;
       currentWinner: number;
+      currentWinnerName?: string;
       currentWinningCardId: string;
       handAtDecision: string[];
       playNumber: number;
@@ -45,6 +50,7 @@ export type SimEvent =
   | {
       type: 'resolve';
       winner: number;
+      winnerName?: string;
     };
 
 export interface Stepper {
@@ -92,6 +98,7 @@ export class OneTrickSimulator {
       events,
       effectiveStepper,
       onEvent,
+      agents,
       dealerIndex,
       round,
       hands
@@ -142,6 +149,7 @@ export class OneTrickSimulator {
       events,
       effectiveStepper,
       onEvent,
+      agents,
       absoluteWinner
     );
 
@@ -197,6 +205,7 @@ export class OneTrickSimulator {
     events: SimEvent[],
     stepper: Stepper,
     onEvent: OneTrickRunOptions['onEvent'],
+    agents: Agent[],
     dealerIndex: number,
     round: number,
     hands: GameCard[][]
@@ -205,6 +214,7 @@ export class OneTrickSimulator {
     await this.pushEvent(events, stepper, onEvent, {
       type: 'deal',
       dealer: dealerIndex,
+      dealerName: agents[dealerIndex]?.name,
       round,
       hands: handsIds,
     });
@@ -251,6 +261,7 @@ export class OneTrickSimulator {
     await this.pushEvent(events, stepper, onEvent, {
       type: 'chooseTrump',
       dealer: dealerIndex,
+      dealerName: agents[dealerIndex]?.name,
       trump: chosen,
     });
     return chosen;
@@ -276,7 +287,7 @@ export class OneTrickSimulator {
         rules: this.rules,
       });
       bids[p] = bid;
-      const bidEvent = this.buildBidEvent(p, bid, hands);
+      const bidEvent = this.buildBidEvent(p, bid, hands, agents);
       await this.pushEvent(events, stepper, onEvent, bidEvent);
     }
     return bids;
@@ -342,6 +353,7 @@ export class OneTrickSimulator {
         handBeforePlay,
         playIndex: i,
         totalPlayers: players,
+        agents,
       });
       await this.pushEvent(events, stepper, onEvent, playEvent);
     }
@@ -390,9 +402,14 @@ export class OneTrickSimulator {
     events: SimEvent[],
     stepper: Stepper,
     onEvent: OneTrickRunOptions['onEvent'],
+    agents: Agent[],
     winner: number
   ): Promise<void> {
-    await this.pushEvent(events, stepper, onEvent, { type: 'resolve', winner });
+    await this.pushEvent(events, stepper, onEvent, {
+      type: 'resolve',
+      winner,
+      winnerName: agents[winner]?.name,
+    });
   }
 
   private buildResult(
@@ -420,11 +437,13 @@ export class OneTrickSimulator {
   private buildBidEvent(
     player: number,
     bid: number,
-    hands: GameCard[][]
+    hands: GameCard[][],
+    agents: Agent[]
   ): Extract<SimEvent, { type: 'bid' }> {
     return {
       type: 'bid',
       player,
+      playerName: agents[player]?.name,
       bid,
       hand: hands[player].map(cardId),
     };
@@ -440,6 +459,7 @@ export class OneTrickSimulator {
     handBeforePlay: string[];
     playIndex: number;
     totalPlayers: number;
+    agents: Agent[];
   }): Extract<SimEvent, { type: 'play' }> {
     const {
       player,
@@ -451,6 +471,7 @@ export class OneTrickSimulator {
       handBeforePlay,
       playIndex,
       totalPlayers,
+      agents,
     } = params;
 
     const currentWinner = this.resolveTrickWinner(
@@ -468,10 +489,12 @@ export class OneTrickSimulator {
     return {
       type: 'play',
       player,
+      playerName: agents[player]?.name,
       cardId: cardId(chosen),
       ledSuit,
       trumpSuit,
       currentWinner,
+      currentWinnerName: agents[currentWinner]?.name,
       currentWinningCardId,
       handAtDecision: handBeforePlay,
       playNumber: playIndex + 1,

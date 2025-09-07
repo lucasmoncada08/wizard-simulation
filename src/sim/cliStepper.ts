@@ -85,27 +85,29 @@ function defaultPrintSummary(events: SimEvent[]): void {
   console.log('\nSUMMARY (so far): total events =', events.length);
   if (lastEvent?.type === 'play') {
     console.log(
-      `Current trick winner: p${lastEvent.currentWinner} with ${lastEvent.currentWinningCardId}`
+      `Current trick winner: ${lastEvent.currentWinnerName ?? `p${lastEvent.currentWinner}`} with ${lastEvent.currentWinningCardId}`
     );
   }
   if (lastEvent?.type === 'resolve') {
-    console.log(`Trick winner: p${lastEvent.winner}`);
+    console.log(
+      `Trick winner: ${lastEvent.winnerName ?? `p${lastEvent.winner}`}`
+    );
   }
 }
 
 function summarizeEvent(e: SimEvent): string {
   switch (e.type) {
     case 'deal':
-      return `deal(dealer=${e.dealer}, round=${e.round})`;
+      return `deal(dealer=${e.dealerName ?? `p${e.dealer}`}, round=${e.round})`;
     case 'flip':
       return `flip(${e.cardId})`;
     case 'chooseTrump':
       return `chooseTrump(${e.trump})`;
     case 'bid':
-      return `bid(p${e.player}=${e.bid}, hand=[${e.hand.join(', ')}])`;
+      return `bid(${e.playerName ?? `p${e.player}`}=${e.bid}, hand=[${e.hand.join(', ')}])`;
     case 'play':
-      return `play(${e.playNumber}/${e.totalPlayers}, p${e.player}=${e.cardId}, led=${e.ledSuit ?? '-'}, trump=${e.trumpSuit}, hand=[${e.handAtDecision.join(', ')}])`;
+      return `play(${e.playNumber}/${e.totalPlayers}, ${e.playerName ?? `p${e.player}`}=${e.cardId}, led=${e.ledSuit ?? '-'}, trump=${e.trumpSuit}, hand=[${e.handAtDecision.join(', ')}])`;
     case 'resolve':
-      return `resolve(winner=${e.winner})`;
+      return `resolve(winner=${e.winnerName ?? `p${e.winner}`})`;
   }
 }

@@ -266,4 +266,54 @@ describe('OneTrickSimulator', () => {
       expect(e.totalPlayers).toBe(rules.players);
     });
   });
+
+  it('includes player names in events when Agent.name is provided', async () => {
+    const rules = loadRules();
+    const agents = [
+      { ...randomAgent, name: 'Alice' },
+      { ...randomAgent, name: 'Bob' },
+      { ...randomAgent, name: 'Carol' },
+      { ...randomAgent, name: 'Dave' },
+    ];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(8080),
+      dealerIndex: 1,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const deal = res.events.find((e) => e.type === 'deal');
+    expect(deal?.type === 'deal' ? deal.dealerName : undefined).toBe(
+      agents[1].name
+    );
+
+    const bids = res.events.filter((e) => e.type === 'bid');
+    expect(bids.length).toBeGreaterThan(0);
+    for (const e of bids) {
+      if (e.type === 'bid') {
+        expect(e.playerName).toBe(agents[e.player].name);
+      }
+    }
+
+    const plays = res.events.filter((e) => e.type === 'play');
+    expect(plays.length).toBeGreaterThan(0);
+    for (const e of plays) {
+      if (e.type === 'play') {
+        expect(e.playerName).toBe(agents[e.player].name);
+        expect(
+          e.currentWinnerName === undefined
+            ? false
+            : typeof e.currentWinnerName === 'string'
+        ).toBe(true);
+      }
+    }
+
+    const resolve = res.events.find((e) => e.type === 'resolve');
+    if (resolve && resolve.type === 'resolve') {
+      expect(resolve.winnerName).toBe(agents[resolve.winner].name);
+    }
+  });
 });
