@@ -57,17 +57,18 @@ export class CliStepper implements Stepper {
 }
 
 function defaultPrintEvent(e: SimEvent): void {
-  
   console.log('\nEVENT:', summarizeEvent(e));
 }
 
 function defaultPrintSummary(events: SimEvent[]): void {
-  const last = events[events.length - 1];
+  const lastEvent = events[events.length - 1];
   
   console.log('\nSUMMARY (so far): total events =', events.length);
-  if (last && last.type === 'resolve') {
-    
-    console.log('Current trick winner:', last.winner);
+  if (lastEvent?.type === 'play') {
+    console.log(`Current trick winner: p${lastEvent.currentWinner}`);
+  }
+  if (lastEvent?.type === 'resolve') {
+    console.log(`Trick winner: p${lastEvent.winner}`);
   }
 }
 

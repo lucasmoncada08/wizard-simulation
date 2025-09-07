@@ -79,6 +79,32 @@ describe('OneTrickSimulator', () => {
     expect(stepper.count).toBe(res.events.length);
   });
 
+  it('includes current winner in play events and matches final winner', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(12345),
+      dealerIndex: 2,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const playEvents = res.events.filter((e) => e.type === 'play') as Array<Extract<typeof res.events[number], { type: 'play' }>>;
+    expect(playEvents.length).toBeGreaterThan(0);
+
+    for (const e of playEvents) {
+      expect(e.currentWinner).toBeGreaterThanOrEqual(0);
+      expect(e.currentWinner).toBeLessThan(rules.players);
+    }
+
+    const lastPlay = playEvents[playEvents.length - 1];
+    const resolve = res.events.find((e) => e.type === 'resolve') as Extract<typeof res.events[number], { type: 'resolve' }> | undefined;
+    expect(resolve).toBeDefined();
+    expect(lastPlay.currentWinner).toBe(resolve!.winner);
+  });
   it('in a 1-card trick, randomAgent occasionally bids 1 across seeds', async () => {
     const rules = loadRules();
     const agents = [randomAgent, randomAgent, randomAgent, randomAgent];

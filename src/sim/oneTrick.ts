@@ -35,6 +35,7 @@ export type SimEvent =
       cardId: string;
       ledSuit?: Suit;
       trumpSuit: TrumpSuit;
+      currentWinner: number;
     }
   | {
       type: 'resolve';
@@ -98,7 +99,7 @@ export class OneTrickSimulator {
 
     const bids = await this.collectBids(events, effectiveStepper, onEvent, agents, hands, dealerIndex, rng);
 
-    const leader = this.computeLeader(dealerIndex);
+    const leader = this.computeStartLeader(dealerIndex);
     const { plays, ledSuit, finalTrump } = await this.playTrick(
       events,
       effectiveStepper,
@@ -232,7 +233,7 @@ export class OneTrickSimulator {
     return bids;
   }
 
-  private computeLeader(dealerIndex: number): number {
+  private computeStartLeader(dealerIndex: number): number {
     return (dealerIndex + 1) % this.rules.players;
   }
 
@@ -272,12 +273,14 @@ export class OneTrickSimulator {
       }
 
       plays.push({ player: p, card: chosen });
+      const currentWinner = this.resolveTrickWinner(plays, ledSuit, trumpSuit, leader);
       await this.pushEvent(events, stepper, onEvent, {
         type: 'play',
         player: p,
         cardId: cardId(chosen),
         ledSuit,
         trumpSuit,
+        currentWinner,
       });
     }
 
