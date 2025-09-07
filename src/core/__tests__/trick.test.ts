@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { TrickResolver, Trick } from './trick';
-import { Card, WizardCard, JesterCard } from './cards';
+import { TrickResolver, Trick } from '../trick';
+import { Card, WizardCard, JesterCard } from '../cards';
 
 describe('Trick Resolution', () => {
   it('should throw error for empty trick', () => {

@@ -5,12 +5,12 @@ import {
   WizardCard,
   type GameCard,
   type Suit,
-} from '../core/cards';
-import { createRNG, type RNG } from '../core/rng';
-import { loadRules, type GameRules } from '../core/gameRules';
-import { getLegalPlays } from '../sim/legal';
-import { type Agent } from '../index';
-import { randomAgent } from '../index';
+} from '../../core/cards';
+import { createRNG, type RNG } from '../../core/rng';
+import { loadRules, type GameRules } from '../../core/gameRules';
+import { getLegalPlays } from '../../sim/legal';
+import { type Agent } from '../../index';
+import { randomAgent } from '../../index';
 
 function makeHand(): GameCard[] {
   return [

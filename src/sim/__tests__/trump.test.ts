@@ -1,11 +1,19 @@
 import { describe, it, expect } from 'vitest';
-import { type Suit, Card, WizardCard, JesterCard, type GameCard } from '../core/cards';
-import { type GameRules } from '../core/gameRules';
+import {
+  type Suit,
+  Card,
+  WizardCard,
+  JesterCard,
+  type GameCard,
+} from '../../core/cards';
+import { type GameRules } from '../../core/gameRules';
 
 // The SUT will be implemented in src/sim/trump.ts
-import { interpretFlip } from './trump';
+import { interpretFlip } from '../trump';
 
-function makeRules(wizardMode: GameRules['trump']['flip_interpretation']['wizard']): GameRules {
+function makeRules(
+  wizardMode: GameRules['trump']['flip_interpretation']['wizard']
+): GameRules {
   return {
     players: 4,
     deck: {
@@ -32,7 +40,10 @@ function makeRules(wizardMode: GameRules['trump']['flip_interpretation']['wizard
 
 function expectResult(
   result: { trumpSuit: Suit | 'NONE'; needsDealerChoice: boolean },
-  { suit, needsDealerChoice }: { suit: Suit | 'NONE'; needsDealerChoice: boolean }
+  {
+    suit,
+    needsDealerChoice,
+  }: { suit: Suit | 'NONE'; needsDealerChoice: boolean }
 ): void {
   expect(result.trumpSuit).toBe(suit);
   expect(result.needsDealerChoice).toBe(needsDealerChoice);

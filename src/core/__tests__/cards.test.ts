@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createRNG } from './rng';
-import { Deck, Card, WizardCard, JesterCard } from './cards';
+import { createRNG } from '../rng';
+import { Deck, Card, WizardCard, JesterCard } from '../cards';
 
 describe('Cards', () => {
   describe('Card classes', () => {

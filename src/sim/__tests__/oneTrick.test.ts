@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { loadRules } from '../core/gameRules';
-import { createRNG } from '../core/rng';
-import { randomAgent } from '../agents/randomAgent';
+import { loadRules } from '../../core/gameRules';
+import { createRNG } from '../../core/rng';
+import { randomAgent } from '../../agents/randomAgent';
 
-import { OneTrickSimulator, type SimEvent, type Stepper } from './oneTrick';
+import { OneTrickSimulator, type SimEvent, type Stepper } from '../oneTrick';
 
 function serializeEvent(e: SimEvent): unknown {
   switch (e.type) {
@@ -14,11 +14,22 @@ function serializeEvent(e: SimEvent): unknown {
     case 'bid':
       return { t: e.type, p: e.player, bid: e.bid };
     case 'play':
-      return { t: e.type, p: e.player, card: e.cardId, led: e.ledSuit ?? null, trump: e.trumpSuit };
+      return {
+        t: e.type,
+        p: e.player,
+        card: e.cardId,
+        led: e.ledSuit ?? null,
+        trump: e.trumpSuit,
+      };
     case 'resolve':
       return { t: e.type, winner: e.winner };
     case 'deal':
-      return { t: e.type, round: e.round, dealer: e.dealer, hands: e.hands.map((h) => h.map((id) => id)) };
+      return {
+        t: e.type,
+        round: e.round,
+        dealer: e.dealer,
+        hands: e.hands.map((h) => h.map((id) => id)),
+      };
     default:
       return e;
   }
@@ -56,7 +67,9 @@ describe('OneTrickSimulator', () => {
 
     expect(res1.summary.winner).toBe(res2.summary.winner);
     expect(res1.summary.bids).toEqual(res2.summary.bids);
-    expect(res1.events.map(serializeEvent)).toEqual(res2.events.map(serializeEvent));
+    expect(res1.events.map(serializeEvent)).toEqual(
+      res2.events.map(serializeEvent)
+    );
   });
 
   it('pauses on each decision in step mode', async () => {
@@ -92,7 +105,9 @@ describe('OneTrickSimulator', () => {
       mode: 'fast',
     });
 
-    const playEvents = res.events.filter((e) => e.type === 'play') as Array<Extract<typeof res.events[number], { type: 'play' }>>;
+    const playEvents = res.events.filter((e) => e.type === 'play') as Array<
+      Extract<(typeof res.events)[number], { type: 'play' }>
+    >;
     expect(playEvents.length).toBeGreaterThan(0);
 
     for (const e of playEvents) {
@@ -101,9 +116,52 @@ describe('OneTrickSimulator', () => {
     }
 
     const lastPlay = playEvents[playEvents.length - 1];
-    const resolve = res.events.find((e) => e.type === 'resolve') as Extract<typeof res.events[number], { type: 'resolve' }> | undefined;
+    const resolve = res.events.find((e) => e.type === 'resolve') as
+      | Extract<(typeof res.events)[number], { type: 'resolve' }>
+      | undefined;
     expect(resolve).toBeDefined();
     expect(lastPlay.currentWinner).toBe(resolve!.winner);
+  });
+
+  it('includes current winning card id in play events', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(999),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const playEvents = res.events.filter((e) => e.type === 'play') as Array<
+      Extract<(typeof res.events)[number], { type: 'play' }>
+    >;
+    expect(playEvents.length).toBeGreaterThan(0);
+
+    const soFar: typeof playEvents = [];
+    for (const e of playEvents) {
+      soFar.push(e);
+      expect(typeof e.currentWinningCardId).toBe('string');
+      expect(e.currentWinningCardId.length).toBeGreaterThan(0);
+      const winnersPlay = soFar.find((x) => x.player === e.currentWinner);
+      expect(winnersPlay).toBeDefined();
+      expect(winnersPlay!.cardId).toBe(e.currentWinningCardId);
+    }
+
+    const resolve = res.events.find((e) => e.type === 'resolve') as
+      | Extract<(typeof res.events)[number], { type: 'resolve' }>
+      | undefined;
+    expect(resolve).toBeDefined();
+    const winnersFinalPlay = playEvents.find(
+      (x) => x.player === resolve!.winner
+    );
+    expect(winnersFinalPlay).toBeDefined();
+    expect(winnersFinalPlay!.cardId).toBe(
+      playEvents[playEvents.length - 1].currentWinningCardId
+    );
   });
   it('in a 1-card trick, randomAgent occasionally bids 1 across seeds', async () => {
     const rules = loadRules();
@@ -125,5 +183,87 @@ describe('OneTrickSimulator', () => {
     }
 
     expect(sawOne).toBe(true);
+  });
+
+  it('includes player hand on bid events', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(101),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const deal = res.events.find((e) => e.type === 'deal') as Extract<
+      (typeof res.events)[number],
+      { type: 'deal' }
+    >;
+    expect(deal).toBeDefined();
+
+    const bidEvents = res.events.filter((e) => e.type === 'bid') as Array<
+      Extract<(typeof res.events)[number], { type: 'bid' }>
+    >;
+    expect(bidEvents.length).toBeGreaterThan(0);
+
+    for (const e of bidEvents) {
+      // Hand during bid should be the dealt hand for that player
+      expect(e.hand).toEqual(deal.hands[e.player]);
+      expect(Array.isArray(e.hand)).toBe(true);
+      expect(e.hand.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('includes player hand at decision time on play events', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(202),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const playEvents = res.events.filter((e) => e.type === 'play') as Array<
+      Extract<(typeof res.events)[number], { type: 'play' }>
+    >;
+    expect(playEvents.length).toBeGreaterThan(0);
+
+    for (const e of playEvents) {
+      expect(Array.isArray(e.handAtDecision)).toBe(true);
+      expect(e.handAtDecision.length).toBeGreaterThan(0);
+      // The card played must have been in the hand at decision time
+      expect(e.handAtDecision).toContain(e.cardId);
+    }
+  });
+
+  it('includes play order info (X/N) in play events', async () => {
+    const rules = loadRules();
+    const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+
+    const sim = new OneTrickSimulator(rules);
+    const res = await sim.run({
+      agents,
+      rng: createRNG(303),
+      dealerIndex: 0,
+      round: 1,
+      mode: 'fast',
+    });
+
+    const playEvents = res.events.filter((e) => e.type === 'play') as Array<
+      Extract<(typeof res.events)[number], { type: 'play' }>
+    >;
+    expect(playEvents.length).toBe(rules.players);
+
+    playEvents.forEach((e, idx) => {
+      expect(e.playNumber).toBe(idx + 1);
+      expect(e.totalPlayers).toBe(rules.players);
+    });
   });
 });

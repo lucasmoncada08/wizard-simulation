@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { createRNG } from './rng';
-import { Dealer } from './deal';
+import { createRNG } from '../rng';
+import { Dealer } from '../deal';
 
 describe('Deal', () => {
   it('should deal correct number of cards per player', () => {

@@ -28,6 +28,7 @@ export type SimEvent =
       type: 'bid';
       player: number;
       bid: number;
+      hand: string[];
     }
   | {
       type: 'play';
@@ -36,6 +37,10 @@ export type SimEvent =
       ledSuit?: Suit;
       trumpSuit: TrumpSuit;
       currentWinner: number;
+      currentWinningCardId: string;
+      handAtDecision: string[];
+      playNumber: number;
+      totalPlayers: number;
     }
   | {
       type: 'resolve';
@@ -83,7 +88,14 @@ export class OneTrickSimulator {
     const events: SimEvent[] = [];
 
     const { hands, remainingDeck } = this.dealHands(players, round, rng);
-    await this.pushDealEvent(events, effectiveStepper, onEvent, dealerIndex, round, hands);
+    await this.pushDealEvent(
+      events,
+      effectiveStepper,
+      onEvent,
+      dealerIndex,
+      round,
+      hands
+    );
 
     const flipCard = remainingDeck[0];
     await this.pushFlipEvent(events, effectiveStepper, onEvent, flipCard);
@@ -97,7 +109,15 @@ export class OneTrickSimulator {
       rng
     );
 
-    const bids = await this.collectBids(events, effectiveStepper, onEvent, agents, hands, dealerIndex, rng);
+    const bids = await this.collectBids(
+      events,
+      effectiveStepper,
+      onEvent,
+      agents,
+      hands,
+      dealerIndex,
+      rng
+    );
 
     const leader = this.computeStartLeader(dealerIndex);
     const { plays, ledSuit, finalTrump } = await this.playTrick(
@@ -112,10 +132,28 @@ export class OneTrickSimulator {
     );
     trumpSuit = finalTrump;
 
-    const absoluteWinner = this.resolveTrickWinner(plays, ledSuit, trumpSuit, leader);
-    await this.pushResolveEvent(events, effectiveStepper, onEvent, absoluteWinner);
+    const absoluteWinner = this.resolveTrickWinner(
+      plays,
+      ledSuit,
+      trumpSuit,
+      leader
+    );
+    await this.pushResolveEvent(
+      events,
+      effectiveStepper,
+      onEvent,
+      absoluteWinner
+    );
 
-    return this.buildResult(events, absoluteWinner, bids, plays, trumpSuit, dealerIndex, round);
+    return this.buildResult(
+      events,
+      absoluteWinner,
+      bids,
+      plays,
+      trumpSuit,
+      dealerIndex,
+      round
+    );
   }
 
   private ensureAgentCount(agents: Agent[]): number {
@@ -126,7 +164,10 @@ export class OneTrickSimulator {
     return players;
   }
 
-  private getEffectiveStepper(mode: 'step' | 'fast', stepper?: Stepper): Stepper {
+  private getEffectiveStepper(
+    mode: 'step' | 'fast',
+    stepper?: Stepper
+  ): Stepper {
     return mode === 'step' && stepper ? stepper : new NoopStepper();
   }
 
@@ -190,7 +231,10 @@ export class OneTrickSimulator {
     dealerIndex: number,
     rng: RNG
   ): Promise<TrumpSuit> {
-    const { trumpSuit, needsDealerChoice } = interpretFlip(flipCard, this.rules);
+    const { trumpSuit, needsDealerChoice } = interpretFlip(
+      flipCard,
+      this.rules
+    );
     if (!needsDealerChoice) return trumpSuit;
 
     const chooseRng = rng.split();
@@ -226,9 +270,14 @@ export class OneTrickSimulator {
     for (let i = 0; i < players; i++) {
       const p = (dealerIndex + 1 + i) % players;
       const bidRng = rng.split();
-      const bid = agents[p].bid({ hand: hands[p].slice(), rng: bidRng, rules: this.rules });
+      const bid = agents[p].bid({
+        hand: hands[p].slice(),
+        rng: bidRng,
+        rules: this.rules,
+      });
       bids[p] = bid;
-      await this.pushEvent(events, stepper, onEvent, { type: 'bid', player: p, bid });
+      const bidEvent = this.buildBidEvent(p, bid, hands);
+      await this.pushEvent(events, stepper, onEvent, bidEvent);
     }
     return bids;
   }
@@ -246,7 +295,11 @@ export class OneTrickSimulator {
     leader: number,
     rng: RNG,
     initialTrump: TrumpSuit
-  ): Promise<{ plays: { player: number; card: GameCard }[]; ledSuit: Suit | undefined; finalTrump: TrumpSuit }> {
+  ): Promise<{
+    plays: { player: number; card: GameCard }[];
+    ledSuit: Suit | undefined;
+    finalTrump: TrumpSuit;
+  }> {
     const players = this.rules.players;
     const plays: { player: number; card: GameCard }[] = [];
     let ledSuit: Suit | undefined = undefined;
@@ -261,33 +314,44 @@ export class OneTrickSimulator {
         rng: playRng,
         rules: this.rules,
       });
+      const handBeforePlay = hands[p].map(cardId);
 
       this.removeCardFromHand(hands[p], chosen, p);
 
       if (ledSuit === undefined && chosen.isRegularCard()) {
         const regular = chosen as Card;
         ledSuit = regular.suit;
-        if (trumpSuit === 'NONE' && this.rules.trump.flip_interpretation.wizard === 'ledSuit') {
+        if (
+          trumpSuit === 'NONE' &&
+          this.rules.trump.flip_interpretation.wizard === 'ledSuit'
+        ) {
           trumpSuit = regular.suit;
         }
       }
 
       plays.push({ player: p, card: chosen });
-      const currentWinner = this.resolveTrickWinner(plays, ledSuit, trumpSuit, leader);
-      await this.pushEvent(events, stepper, onEvent, {
-        type: 'play',
+      const playEvent = this.buildPlayEvent({
         player: p,
-        cardId: cardId(chosen),
+        chosen,
         ledSuit,
         trumpSuit,
-        currentWinner,
+        plays,
+        leader,
+        handBeforePlay,
+        playIndex: i,
+        totalPlayers: players,
       });
+      await this.pushEvent(events, stepper, onEvent, playEvent);
     }
 
     return { plays, ledSuit, finalTrump: trumpSuit };
   }
 
-  private removeCardFromHand(hand: GameCard[], chosen: GameCard, playerIndex: number): void {
+  private removeCardFromHand(
+    hand: GameCard[],
+    chosen: GameCard,
+    playerIndex: number
+  ): void {
     const byReferenceIndex = hand.indexOf(chosen);
     if (byReferenceIndex !== -1) {
       hand.splice(byReferenceIndex, 1);
@@ -295,7 +359,9 @@ export class OneTrickSimulator {
     }
     const structuralIndex = hand.findIndex((c) => equalCard(c, chosen));
     if (structuralIndex === -1) {
-      throw new Error(`Played card not found in hand for player ${playerIndex}`);
+      throw new Error(
+        `Played card not found in hand for player ${playerIndex}`
+      );
     }
     hand.splice(structuralIndex, 1);
   }
@@ -308,7 +374,11 @@ export class OneTrickSimulator {
   ): number {
     const orderedCards = plays.map((x) => x.card);
     const resolver = new TrickResolver();
-    const trick = new Trick(orderedCards, ledSuit, trumpSuit === 'NONE' ? undefined : trumpSuit);
+    const trick = new Trick(
+      orderedCards,
+      ledSuit,
+      trumpSuit === 'NONE' ? undefined : trumpSuit
+    );
     const relativeWinner = resolver.resolveTrick(trick);
     const absoluteWinner = (leader + relativeWinner) % this.rules.players;
     return absoluteWinner;
@@ -344,12 +414,74 @@ export class OneTrickSimulator {
       },
     };
   }
+
+  private buildBidEvent(
+    player: number,
+    bid: number,
+    hands: GameCard[][]
+  ): Extract<SimEvent, { type: 'bid' }> {
+    return {
+      type: 'bid',
+      player,
+      bid,
+      hand: hands[player].map(cardId),
+    };
+  }
+
+  private buildPlayEvent(params: {
+    player: number;
+    chosen: GameCard;
+    ledSuit: Suit | undefined;
+    trumpSuit: TrumpSuit;
+    plays: { player: number; card: GameCard }[];
+    leader: number;
+    handBeforePlay: string[];
+    playIndex: number;
+    totalPlayers: number;
+  }): Extract<SimEvent, { type: 'play' }> {
+    const {
+      player,
+      chosen,
+      ledSuit,
+      trumpSuit,
+      plays,
+      leader,
+      handBeforePlay,
+      playIndex,
+      totalPlayers,
+    } = params;
+
+    const currentWinner = this.resolveTrickWinner(
+      plays,
+      ledSuit,
+      trumpSuit,
+      leader
+    );
+    const winnerPlayIndex = plays.findIndex((x) => x.player === currentWinner);
+    if (winnerPlayIndex === -1) {
+      throw new Error('Invariant violation: winner has no corresponding play');
+    }
+    const currentWinningCardId = cardId(plays[winnerPlayIndex].card);
+
+    return {
+      type: 'play',
+      player,
+      cardId: cardId(chosen),
+      ledSuit,
+      trumpSuit,
+      currentWinner,
+      currentWinningCardId,
+      handAtDecision: handBeforePlay,
+      playNumber: playIndex + 1,
+      totalPlayers,
+    };
+  }
 }
 
 // Helpers
 function cardId(c: GameCard): string {
   if (c.isWizard()) return 'W';
-  if (c.isJester()) return 'J';
+  if (c.isJester()) return 'JE';
   const rc = c as Card;
   return `${rc.rank}${rc.suit}`;
 }
@@ -364,4 +496,3 @@ function equalCard(a: GameCard, b: GameCard): boolean {
   }
   return false;
 }
-

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createRNG } from './rng';
+import { createRNG } from '../rng';
 
 describe('RNG', () => {
   it('should be deterministic with same seed', () => {
@@ -7,7 +7,9 @@ describe('RNG', () => {
     const rng2 = createRNG(42);
 
     expect(rng1.nextIntWithinBounds(100)).toBe(rng2.nextIntWithinBounds(100));
-    expect(rng1.nextIntWithinBounds(50, 100)).toBe(rng2.nextIntWithinBounds(50, 100));
+    expect(rng1.nextIntWithinBounds(50, 100)).toBe(
+      rng2.nextIntWithinBounds(50, 100)
+    );
     expect(rng1.nextDouble()).toBe(rng2.nextDouble());
   });
 
@@ -15,7 +17,9 @@ describe('RNG', () => {
     const rng1 = createRNG(42);
     const rng2 = createRNG(43);
 
-    expect(rng1.nextIntWithinBounds(100)).not.toBe(rng2.nextIntWithinBounds(100));
+    expect(rng1.nextIntWithinBounds(100)).not.toBe(
+      rng2.nextIntWithinBounds(100)
+    );
   });
 
   it('should respect min/max bounds for nextInt', () => {
@@ -48,8 +52,14 @@ describe('RNG', () => {
     const rng1Copy = createRNG(42);
     const rng2Copy = rng1Copy.split();
 
-    expect(rng1.nextIntWithinBounds(100)).toBe(rng1Copy.nextIntWithinBounds(100));
-    expect(rng2.nextIntWithinBounds(100)).toBe(rng2Copy.nextIntWithinBounds(100));
-    expect(rng1.nextIntWithinBounds(100)).not.toBe(rng2.nextIntWithinBounds(100));
+    expect(rng1.nextIntWithinBounds(100)).toBe(
+      rng1Copy.nextIntWithinBounds(100)
+    );
+    expect(rng2.nextIntWithinBounds(100)).toBe(
+      rng2Copy.nextIntWithinBounds(100)
+    );
+    expect(rng1.nextIntWithinBounds(100)).not.toBe(
+      rng2.nextIntWithinBounds(100)
+    );
   });
 });

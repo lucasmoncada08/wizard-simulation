@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { Card, WizardCard, JesterCard, type GameCard } from '../core/cards';
-import { getLegalPlays } from '../index';
+import { Card, WizardCard, JesterCard, type GameCard } from '../../core/cards';
+import { getLegalPlays } from '../../index';
 
 const sortByIdentity = (cards: GameCard[]): string[] =>
   cards.map((c) => {

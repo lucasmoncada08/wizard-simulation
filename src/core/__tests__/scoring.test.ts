@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Scorer, type ScoreResult } from './scoring';
+import { Scorer, type ScoreResult } from '../scoring';
 
 describe('Scoring', () => {
   const rules = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { loadRules, getMaxRounds, type GameRules } from './gameRules';
+import { loadRules, getMaxRounds, type GameRules } from '../gameRules';
 
 // Mock fs module
 vi.mock('fs', () => ({

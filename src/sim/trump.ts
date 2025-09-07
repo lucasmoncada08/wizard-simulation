@@ -6,7 +6,10 @@ export interface TrumpFlipResult {
   needsDealerChoice: boolean;
 }
 
-export function interpretFlip(card: GameCard, rules: GameRules): TrumpFlipResult {
+export function interpretFlip(
+  card: GameCard,
+  rules: GameRules
+): TrumpFlipResult {
   if (card.isRegularCard()) {
     const regular = card as unknown as { suit: Suit };
     return { trumpSuit: regular.suit, needsDealerChoice: false };
