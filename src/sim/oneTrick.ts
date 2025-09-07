@@ -311,6 +311,8 @@ export class OneTrickSimulator {
       const chosen = agents[p].play({
         hand: hands[p].slice(),
         ledSuit,
+        trumpSuit: trumpSuit === 'NONE' ? undefined : trumpSuit,
+        playsSoFar: plays.map((x) => x.card),
         rng: playRng,
         rules: this.rules,
       });

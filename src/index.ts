@@ -14,3 +14,4 @@ export * from './sim/cliStepper';
 // Agents
 export * from './agents/types';
 export * from './agents/randomAgent';
+export * from './agents/naiveAgent';

@@ -11,6 +11,10 @@ export interface BidContext {
 export interface PlayContext {
   hand: GameCard[];
   ledSuit: Suit | undefined;
+  // Trump suit for the current trick; undefined when there is no trump (NONE)
+  trumpSuit?: Suit;
+  // Ordered list of cards already played in the current trick
+  playsSoFar?: GameCard[];
   rng: RNG;
   rules: GameRules;
 }
