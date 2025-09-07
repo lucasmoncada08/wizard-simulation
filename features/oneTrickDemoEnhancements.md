@@ -4,6 +4,7 @@
 
 2. Show extra details during the bidding / playing 
     // - What their cards are along with the bid/play
+    // - How many people to play still
     - How many tricks have been chosen (implement later with the rounds)
     - Difference of tricks vs equilibrium
     - How many people still to bid
@@ -15,3 +16,7 @@
 
 4. Have a way to score agents with ELO and play against eachother
     - ELO based approach? Winner only?
+
+5. Better way of displaying content in the command line
+    - colours or bolds?
+    - can try experimenting with ink
