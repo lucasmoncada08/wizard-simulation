@@ -11,13 +11,18 @@ async function main(): Promise<void> {
   const rules = loadRules();
   const sim = new OneTrickSimulator(rules);
 
-  const agents = [naiveAgent, randomAgent, randomAgent, naiveAgent];
+  const agents = [
+    { ...naiveAgent, name: 'Naive Agent 1' },
+    { ...randomAgent, name: 'Random 1' },
+    { ...randomAgent, name: 'Random 2' },
+    { ...naiveAgent, name: 'Naive Agent 2' },
+  ];
 
   const result = await sim.run({
     agents,
     rng: createRNG(seed),
     dealerIndex: 0,
-    round: 2,
+    round: 1,
     mode: 'step',
   });
 
