@@ -1,6 +1,7 @@
 import { loadRules } from '../core/gameRules';
 import { createRNG } from '../core/rng';
-import { randomAgent } from '../agents/randomAgent';
+import { createRandomAgent } from '../agents/randomAgent';
+import { createNaiveAgent } from '../agents/naiveAgent';
 import { OneTrickSimulator } from '../sim/oneTrick';
 import { CliStepper } from '../sim/cliStepper';
 
@@ -12,7 +13,12 @@ async function main(): Promise<void> {
   const sim = new OneTrickSimulator(rules);
   const stepper = new CliStepper();
 
-  const agents = [randomAgent, randomAgent, randomAgent, randomAgent];
+  const agents = [
+    createNaiveAgent('Naive Agent 1'),
+    createRandomAgent('Random Agent 1'),
+    createRandomAgent('Random Agent 2'),
+    createNaiveAgent('Naive Agent 2'),
+  ];
 
   const result = await sim.run({
     agents,

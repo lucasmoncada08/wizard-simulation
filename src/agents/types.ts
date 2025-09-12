@@ -25,8 +25,8 @@ export interface ChooseTrumpContext {
 }
 
 export interface Agent {
-  /** Optional display name for this player/agent */
-  name?: string;
+  /** Display name for this player/agent */
+  name: string;
   bid(ctx: BidContext): number;
   play(ctx: PlayContext): GameCard;
   chooseTrump?(ctx: ChooseTrumpContext): Suit;

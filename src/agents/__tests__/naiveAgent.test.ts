@@ -27,6 +27,7 @@ function makeCtx(hand: GameCard[]): {
 describe('NaiveAgent.bid', () => {
   it('adds +1 per wizard', () => {
     const agent: Agent = naiveAgent;
+    expect(agent.name).toBe('Naive Agent');
     const hand: GameCard[] = [
       new WizardCard(),
       new WizardCard(),

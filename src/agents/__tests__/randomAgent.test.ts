@@ -48,6 +48,7 @@ function makeCtx(
 describe('RandomAgent.bid', () => {
   it('returns integer in [0, hand.length]', () => {
     const agent: Agent = randomAgent;
+    expect(agent.name).toBe('Random Agent');
     const hand = makeHand();
     const ctx = makeCtx({ hand, rng: createRNG(1) });
     const bid = agent.bid(ctx as never);
