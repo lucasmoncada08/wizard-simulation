@@ -24,7 +24,7 @@ async function main(): Promise<void> {
     agents,
     rng: createRNG(seed),
     dealerIndex: 0,
-    round: 1,
+    round: 4,
     mode: 'step',
     stepper,
   });

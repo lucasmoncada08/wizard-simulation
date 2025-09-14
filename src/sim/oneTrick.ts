@@ -505,10 +505,7 @@ export class OneTrickSimulator {
 
 // Helpers
 function cardId(c: GameCard): string {
-  if (c.isWizard()) return 'W';
-  if (c.isJester()) return 'JE';
-  const rc = c as Card;
-  return `${rc.rank}${rc.suit}`;
+  return c.toString();
 }
 
 function equalCard(a: GameCard, b: GameCard): boolean {
