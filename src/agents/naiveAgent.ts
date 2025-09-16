@@ -7,14 +7,15 @@ export class NaiveAgent implements Agent {
   constructor(public readonly name: string = 'Naive Agent') {}
 
   bid(ctx: BidContext): number {
-    return NaiveAgent.computeBidFromHand(ctx.hand);
+    return NaiveAgent.computeBidFromHand(ctx.hand, ctx.trumpSuit);
   }
 
   play(ctx: PlayContext): GameCard {
     const legalPlays = getLegalPlays(ctx.hand, ctx.ledSuit);
 
+    const relevantSuits = NaiveAgent.buildRelevantSuits(ctx.ledSuit, ctx.trumpSuit);
     const { winnerCandidates, nonWinners } =
-      NaiveAgent.partitionWinners(legalPlays);
+      NaiveAgent.partitionWinners(legalPlays, relevantSuits);
 
     const hasCurrentWinner = (ctx.playsSoFar?.length ?? 0) > 0;
     const viableWinners: Array<{ card: GameCard; cost: number }> = [];
@@ -61,23 +62,27 @@ export class NaiveAgent implements Agent {
     return pool[bestIndex];
   }
 
-  private static computeBidFromHand(hand: GameCard[]): number {
+  private static computeBidFromHand(
+    hand: GameCard[],
+    trumpSuit: Suit | undefined
+  ): number {
     let bid = 0;
-    for (const card of hand) {
-      if (card.isWizard()) bid += 1;
-      else if (NaiveAgent.isAceOrKing(card)) bid += 1;
-    }
+    const relevantSuits = NaiveAgent.buildRelevantSuits(undefined, trumpSuit);
+    for (const card of hand) if (NaiveAgent.isValuableHighCard(card, relevantSuits)) bid += 1;
     return bid;
   }
 
-  private static partitionWinners(cards: GameCard[]): {
+  private static partitionWinners(
+    cards: GameCard[],
+    relevantSuits: Set<Suit> | undefined
+  ): {
     winnerCandidates: GameCard[];
     nonWinners: GameCard[];
   } {
     const winnerCandidates: GameCard[] = [];
     const nonWinners: GameCard[] = [];
     for (const card of cards) {
-      if (NaiveAgent.isNaiveWinnerCard(card)) winnerCandidates.push(card);
+      if (NaiveAgent.isValuableHighCard(card, relevantSuits)) winnerCandidates.push(card);
       else nonWinners.push(card);
     }
     return { winnerCandidates, nonWinners };
@@ -89,14 +94,32 @@ export class NaiveAgent implements Agent {
     return 100; // wizard: avoid unless necessary
   }
 
-  private static isNaiveWinnerCard(card: GameCard): boolean {
-    return card.isWizard() || NaiveAgent.isAceOrKing(card);
-  }
-
   private static isAceOrKing(card: GameCard): boolean {
     if (!card.isRegularCard()) return false;
     const c = card as Card;
     return c.rank === 14 || c.rank === 13;
+  }
+
+  private static isValuableHighCard(
+    card: GameCard,
+    relevantSuits: Set<Suit> | undefined
+  ): boolean {
+    if (card.isWizard()) return true;
+    if (!NaiveAgent.isAceOrKing(card)) return false;
+    if (relevantSuits === undefined) return true;
+    const c = card as Card;
+    return relevantSuits.has(c.suit);
+  }
+
+  private static buildRelevantSuits(
+    ledSuit: Suit | undefined,
+    trumpSuit: Suit | undefined
+  ): Set<Suit> | undefined {
+    const suits: Suit[] = [];
+    if (ledSuit !== undefined) suits.push(ledSuit);
+    if (trumpSuit !== undefined) suits.push(trumpSuit);
+    if (suits.length === 0) return undefined;
+    return new Set<Suit>(suits);
   }
 
   private static wouldCardTakeLead(

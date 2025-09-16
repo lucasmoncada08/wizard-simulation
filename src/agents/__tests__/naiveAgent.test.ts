@@ -11,14 +11,16 @@ import { loadRules, type GameRules } from '../../core/gameRules';
 import { type Agent } from '../../agents/types';
 import { naiveAgent } from '../../agents/naiveAgent';
 
-function makeCtx(hand: GameCard[]): {
+function makeCtx(hand: GameCard[], trumpSuit?: Suit): {
   hand: GameCard[];
+  trumpSuit: Suit | undefined;
   rng: RNG;
   rules: GameRules;
 } {
   const rules = loadRules('gameRules.yaml');
   return {
     hand,
+    trumpSuit,
     rng: createRNG(123),
     rules,
   } as const;
@@ -69,6 +71,38 @@ describe('NaiveAgent.bid', () => {
     ];
     const bid = agent.bid(makeCtx(hand) as never);
     expect(bid).toBe(3);
+  });
+
+  it('with trumpSuit set, counts only Ace/King of trump suit (ignores others)', () => {
+    const agent: Agent = naiveAgent;
+    const hand: GameCard[] = [
+      new Card('♠', 14), // Ace of trump
+      new Card('♥', 13), // King off-suit
+      new JesterCard(),
+    ];
+    const bid = agent.bid(makeCtx(hand, '♠') as never);
+    expect(bid).toBe(1);
+  });
+
+  it('with trumpSuit set, Wizard still counts +1', () => {
+    const agent: Agent = naiveAgent;
+    const hand: GameCard[] = [
+      new WizardCard(),
+      new Card('♥', 14), // Ace off-suit, not trump
+    ];
+    const bid = agent.bid(makeCtx(hand, '♠') as never);
+    expect(bid).toBe(1);
+  });
+
+  it('with trumpSuit set, AK off-suit are ignored', () => {
+    const agent: Agent = naiveAgent;
+    const hand: GameCard[] = [
+      new Card('♥', 14),
+      new Card('♦', 13),
+      new JesterCard(),
+    ];
+    const bid = agent.bid(makeCtx(hand, '♠') as never);
+    expect(bid).toBe(0);
   });
 });
 

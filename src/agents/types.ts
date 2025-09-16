@@ -4,6 +4,8 @@ import { type GameRules } from '../core/gameRules';
 
 export interface BidContext {
   hand: GameCard[];
+  // Trump suit for the current round when known; undefined when there is no trump (NONE)
+  trumpSuit?: Suit;
   rng: RNG;
   rules: GameRules;
 }

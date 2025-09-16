@@ -32,14 +32,22 @@ function makeCtx(
   overrides: Partial<{
     hand: GameCard[];
     ledSuit: Suit | undefined;
+    trumpSuit: Suit | undefined;
     rules: GameRules;
     rng: RNG;
   }> = {}
-): { hand: GameCard[]; ledSuit: Suit | undefined; rules: GameRules; rng: RNG } {
+): {
+  hand: GameCard[];
+  ledSuit: Suit | undefined;
+  trumpSuit: Suit | undefined;
+  rules: GameRules;
+  rng: RNG;
+} {
   const rules = overrides.rules ?? loadRules('gameRules.yaml');
   return {
     hand: overrides.hand ?? makeHand(),
     ledSuit: overrides.ledSuit,
+    trumpSuit: overrides.trumpSuit,
     rules,
     rng: overrides.rng ?? createRNG(123),
   };
@@ -50,7 +58,7 @@ describe('RandomAgent.bid', () => {
     const agent: Agent = randomAgent;
     expect(agent.name).toBe('Random Agent');
     const hand = makeHand();
-    const ctx = makeCtx({ hand, rng: createRNG(1) });
+    const ctx = makeCtx({ hand, rng: createRNG(1), trumpSuit: '♠' });
     const bid = agent.bid(ctx as never);
     expect(Number.isInteger(bid)).toBe(true);
     expect(bid).toBeGreaterThanOrEqual(0);
@@ -60,8 +68,12 @@ describe('RandomAgent.bid', () => {
   it('is deterministic with a fixed seed', () => {
     const agent: Agent = randomAgent;
     const hand = makeHand();
-    const bid1 = agent.bid(makeCtx({ hand, rng: createRNG(42) }) as never);
-    const bid2 = agent.bid(makeCtx({ hand, rng: createRNG(42) }) as never);
+    const bid1 = agent.bid(
+      makeCtx({ hand, rng: createRNG(42), trumpSuit: '♥' }) as never
+    );
+    const bid2 = agent.bid(
+      makeCtx({ hand, rng: createRNG(42), trumpSuit: '♥' }) as never
+    );
     expect(bid1).toBe(bid2);
   });
 });
